@@ -40,7 +40,7 @@ prompt([
       prompt,
     });
   } catch (e) {
-    console.log(`! ${e.message}`);
+    console.error(`! ${e.message}`);
     process.exit(1);
   }
 
