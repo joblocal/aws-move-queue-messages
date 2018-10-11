@@ -90,7 +90,7 @@ describe('moveMessage', () => {
     )).rejects.toEqual({ message: 'error' });
   });
 
-  test('to be passed values for receiveMessage', async () => {
+  test('to call receiveMessage with expected parameters', async () => {
     const mockSqs = {
       receiveMessage: mockCallbackFunction(null, {
         Messages: [
@@ -117,7 +117,7 @@ describe('moveMessage', () => {
     );
   });
 
-  test('to be passed values for sendMessage', async () => {
+  test('to call sendMessage with expected parameters', async () => {
     const mockSqs = {
       receiveMessage: mockCallbackFunction(null, {
         Messages: [
@@ -147,7 +147,7 @@ describe('moveMessage', () => {
     );
   });
 
-  test('to be passed values for deleteMessage', async () => {
+  test('to call deleteMessage with expected parameters', async () => {
     const mockSqs = {
       receiveMessage: mockCallbackFunction(null, {
         Messages: [
