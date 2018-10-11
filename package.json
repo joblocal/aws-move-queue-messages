@@ -12,6 +12,10 @@
     "test:coverage": "yarn test --coverage",
     "validate": "npm-run-all --parallel lint test"
   },
+  "pre-push": {
+    "run": "validate",
+    "silent": true
+  },
   "bin": {
     "aws-move-queue-messages": "./src/index.js"
   },
@@ -27,6 +31,7 @@
     "eslint": "^5.6.1",
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.14.0",
-    "jest": "^23.6.0"
+    "jest": "^23.6.0",
+    "npm-run-all": "^4.1.3"
   }
 }
