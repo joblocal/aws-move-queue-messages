@@ -44,5 +44,5 @@ prompt([
     process.exit(1);
   }
 
-  console.log(`${count} messages move from ${sourceQueueUrl} to ${targetQueueUrl}!`);
+  console.log(`${count} messages moved from ${sourceQueueUrl} to ${targetQueueUrl}!`);
 });
