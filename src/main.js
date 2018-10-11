@@ -17,7 +17,7 @@ const handle = async ({
     {
       type: 'confirm',
       name: 'move',
-      message: `You want to move ${count} entries?`,
+      message: `Do you want to move ${count} messages?`,
       default: false,
     },
   ]);
