@@ -26,7 +26,7 @@ const handle = async ({
     process.exit(0);
   }
 
-  const spinner = new Spinner(`Move ${count} messages...`);
+  const spinner = new Spinner(`Moving ${count} messages...`);
   spinner.start();
 
   const promises = [];
