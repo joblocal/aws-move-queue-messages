@@ -3,7 +3,7 @@
 ![Downloads](https://img.shields.io/npm/dt/@joblocal\/aws-move-queue-messages.svg)
 
 This Project provides a CLI tool for moving messages from one AWS SQS queue to another.
-For example to run faild messages from your deadletter queues again.
+For example to run failed messages from your deadletter queues again.
 
 ## Requirements
 - AWS environment configuration
