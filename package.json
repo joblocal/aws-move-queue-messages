@@ -1,6 +1,6 @@
 {
   "name": "@joblocal/aws-move-queue-messages",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "This tool can move queue message from an AWS SQS Queue to an other AWS SQS Queue.",
   "main": "src/index.js",
   "author": "joblocal GmbH",
