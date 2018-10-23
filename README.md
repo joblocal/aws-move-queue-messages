@@ -33,6 +33,10 @@ After installing the package you can use it as follows.
 $ aws-move-queue-messages
 ```
 
+### Parameter
+Use the **Source Url** parameter to specify the source queue from which the messages are to be read.
+Use the **Target Url** parameter to specify the target queue in which the messages are written.
+
 ## Built with
 * [Yarn](https://yarnpkg.com/lang/en/) - Dependency Management
 * [Jest](https://facebook.github.io/jest/) - Test Runner
