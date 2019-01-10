@@ -39,7 +39,14 @@ const createClient = (sqs) => {
   const moveMessage = (sourceQueueUrl, targetQueueUrl) => (
     new Promise(async (resolve, reject) => {
       try {
-        const { Body, ReceiptHandle } = await receiveMessage(sourceQueueUrl);
+        const receivedMessage = await receiveMessage(sourceQueueUrl);
+
+        if (!receivedMessage.Body || !receivedMessage.ReceiptHandle) {
+          throw 'Queue is empty'; // eslint-disable-line
+        }
+
+        const { Body, ReceiptHandle } = receivedMessage;
+
         await sendMessage(targetQueueUrl, Body);
         await deleteMessage(sourceQueueUrl, ReceiptHandle);
 
