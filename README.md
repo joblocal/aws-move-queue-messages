@@ -33,6 +33,12 @@ After installing the package you can use it as follows.
 $ aws-move-queue-messages
 ```
 
+With all optional CLI arguments:
+
+```sh
+$ aws-move-queue-messages <from-queue-url> <to-queue-url> -r [AWS-REGION] -y
+```
+
 ### Parameter
 Use the **Source Url** parameter to specify the source queue from which the messages are to be read.
 Use the **Target Url** parameter to specify the target queue in which the messages are written.
