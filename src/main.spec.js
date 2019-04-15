@@ -23,6 +23,25 @@ describe('handle', () => {
     expect(sqs.getCount).toHaveBeenCalled();
   });
 
+  test('to move messages without prompt', async () => {
+    const sqs = {
+      getCount: jest.fn(() => 3),
+      moveMessage: jest.fn(),
+    };
+
+    const prompt = jest.fn();
+
+    await handle({
+      sourceQueueUrl: 'https://sqs.region.amazonaws.com/123456789/srcQueue',
+      targetQueueUrl: 'https://sqs.region.amazonaws.com/123456789/targetQueue',
+      sqs,
+      prompt,
+      skipPrompt: true,
+    });
+
+    expect(sqs.getCount).toHaveBeenCalled();
+  });
+
   describe('reject promise', () => {
     test('on failed count', () => {
       const sqs = {

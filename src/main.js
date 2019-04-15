@@ -5,6 +5,7 @@ const handle = async ({
   targetQueueUrl,
   sqs,
   prompt,
+  skipPrompt,
 }) => {
   const count = await sqs.getCount(sourceQueueUrl);
   await sqs.getCount(targetQueueUrl);
@@ -13,17 +14,19 @@ const handle = async ({
     throw new Error(`The queue ${sourceQueueUrl} is empty!`);
   }
 
-  const { move } = await prompt([
-    {
-      type: 'confirm',
-      name: 'move',
-      message: `Do you want to move ${count} messages?`,
-      default: false,
-    },
-  ]);
+  if (!skipPrompt) {
+    const { move } = await prompt([
+      {
+        type: 'confirm',
+        name: 'move',
+        message: `Do you want to move ${count} messages?`,
+        default: false,
+      },
+    ]);
 
-  if (!move) {
-    process.exit(0);
+    if (!move) {
+      process.exit(0);
+    }
   }
 
   const spinner = new Spinner(`Moving ${count} messages...`);
