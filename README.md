@@ -39,6 +39,8 @@ With all optional CLI arguments:
 $ aws-move-queue-messages <from-queue-url> <to-queue-url> -r [AWS-REGION] -y
 ```
 
+Any CLI argument or option you do not specify will fallback to a CLI prompt. The `-y` CLI option will answer the confirmation prompt automatically with "yes".
+
 ### Parameter
 Use the **Source Url** parameter to specify the source queue from which the messages are to be read.
 Use the **Target Url** parameter to specify the target queue in which the messages are written.
