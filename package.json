@@ -21,8 +21,8 @@
   },
   "dependencies": {
     "aws-sdk": "^2.328.0",
-    "clear": "^0.1.0",
     "clui": "^0.3.6",
+    "commander": "^2.20.0",
     "inquirer": "^6.2.0",
     "minimist": "^1.2.0"
   },
