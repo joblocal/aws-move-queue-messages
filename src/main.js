@@ -3,6 +3,7 @@ const { Spinner } = require('clui');
 const handle = async ({
   sourceQueueUrl,
   targetQueueUrl,
+  copy,
   sqs,
   prompt,
   skipPrompt,
@@ -14,12 +15,17 @@ const handle = async ({
     throw new Error(`The queue ${sourceQueueUrl} is empty!`);
   }
 
+  let copyOrMove = 'move';
+  if (copy) {
+    copyOrMove = 'copy';
+  }
+
   if (!skipPrompt) {
     const { move } = await prompt([
       {
         type: 'confirm',
         name: 'move',
-        message: `Do you want to move ${count} messages?`,
+        message: `Do you want to ${copyOrMove} ${count} messages?`,
         default: false,
       },
     ]);
@@ -35,7 +41,7 @@ const handle = async ({
   const promises = [];
 
   for (let i = 0; i < count; i += 1) {
-    promises.push(sqs.moveMessage(sourceQueueUrl, targetQueueUrl));
+    promises.push(sqs.moveMessage(sourceQueueUrl, targetQueueUrl, copy));
   }
 
   await Promise.all(promises).then(() => {

@@ -73,6 +73,28 @@ describe('moveMessage', () => {
     const handle = await sqs.moveMessage(
       'https://sqs.region.amazonaws.com/123456789/srcQueue',
       'https://sqs.region.amazonaws.com/123456789/targetQueue',
+      false,
+    );
+    expect(handle).toEqual('ReceiptHandle');
+  });
+
+  test('to resolve promise - copy', async () => {
+    const sqs = createClient({
+      receiveMessage: mockCallbackFunction(null, {
+        Messages: [
+          {
+            Body: 'Body',
+            ReceiptHandle: 'ReceiptHandle',
+          },
+        ],
+      }),
+      sendMessage: mockCallbackFunction(null, {}),
+    });
+
+    const handle = await sqs.moveMessage(
+      'https://sqs.region.amazonaws.com/123456789/srcQueue',
+      'https://sqs.region.amazonaws.com/123456789/targetQueue',
+      true,
     );
     expect(handle).toEqual('ReceiptHandle');
   });
@@ -87,6 +109,7 @@ describe('moveMessage', () => {
     expect(sqs.moveMessage(
       'https://sqs.region.amazonaws.com/123456789/srcQueue',
       'https://sqs.region.amazonaws.com/123456789/targetQueue',
+      false,
     )).rejects.toEqual({ message: 'error' });
   });
 
@@ -110,6 +133,7 @@ describe('moveMessage', () => {
     await sqs.moveMessage(
       'https://sqs.region.amazonaws.com/123456789/srcQueue',
       'https://sqs.region.amazonaws.com/123456789/targetQueue',
+      false,
     );
     expect(mockSqs.receiveMessage).toHaveBeenCalledWith(
       { QueueUrl: 'https://sqs.region.amazonaws.com/123456789/srcQueue' },
@@ -137,6 +161,7 @@ describe('moveMessage', () => {
     await sqs.moveMessage(
       'https://sqs.region.amazonaws.com/123456789/srcQueue',
       'https://sqs.region.amazonaws.com/123456789/targetQueue',
+      false,
     );
     expect(mockSqs.sendMessage).toHaveBeenCalledWith(
       {
@@ -167,6 +192,7 @@ describe('moveMessage', () => {
     await sqs.moveMessage(
       'https://sqs.region.amazonaws.com/123456789/srcQueue',
       'https://sqs.region.amazonaws.com/123456789/targetQueue',
+      false,
     );
     expect(mockSqs.deleteMessage).toHaveBeenCalledWith(
       {

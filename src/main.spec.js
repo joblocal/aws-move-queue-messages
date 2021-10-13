@@ -5,6 +5,9 @@
 const { handle } = require('./main');
 
 describe('handle', () => {
+  const sourceQueueUrl = 'https://sqs.region.amazonaws.com/123456789/srcQueue';
+  const targetQueueUrl = 'https://sqs.region.amazonaws.com/123456789/targetQueue';
+
   test('to move messages', async () => {
     const sqs = {
       getCount: jest.fn(() => 3),
@@ -12,15 +15,39 @@ describe('handle', () => {
     };
 
     const prompt = jest.fn(() => ({ move: true }));
+    const copy = false;
 
     await handle({
-      sourceQueueUrl: 'https://sqs.region.amazonaws.com/123456789/srcQueue',
-      targetQueueUrl: 'https://sqs.region.amazonaws.com/123456789/targetQueue',
+      sourceQueueUrl: sourceQueueUrl,
+      targetQueueUrl: targetQueueUrl,
+      copy,
       sqs,
       prompt,
     });
 
     expect(sqs.getCount).toHaveBeenCalled();
+    expect(sqs.moveMessage).toHaveBeenCalledWith(sourceQueueUrl, targetQueueUrl, copy);
+  });
+
+  test('to copy messages', async () => {
+    const sqs = {
+      getCount: jest.fn(() => 3),
+      moveMessage: jest.fn(),
+    };
+
+    const prompt = jest.fn(() => ({ move: true }));
+    const copy = true;
+
+    await handle({
+      sourceQueueUrl,
+      targetQueueUrl,
+      copy,
+      sqs,
+      prompt,
+    });
+
+    expect(sqs.getCount).toHaveBeenCalled();
+    expect(sqs.moveMessage).toHaveBeenCalledWith(sourceQueueUrl, targetQueueUrl, copy);
   });
 
   test('to move messages without prompt', async () => {
@@ -30,16 +57,19 @@ describe('handle', () => {
     };
 
     const prompt = jest.fn();
+    const copy = false;
 
     await handle({
-      sourceQueueUrl: 'https://sqs.region.amazonaws.com/123456789/srcQueue',
-      targetQueueUrl: 'https://sqs.region.amazonaws.com/123456789/targetQueue',
+      sourceQueueUrl,
+      targetQueueUrl,
+      copy,
       sqs,
       prompt,
       skipPrompt: true,
     });
 
     expect(sqs.getCount).toHaveBeenCalled();
+    expect(sqs.moveMessage).toHaveBeenCalledWith(sourceQueueUrl, targetQueueUrl, copy);
   });
 
   describe('reject promise', () => {
@@ -50,10 +80,12 @@ describe('handle', () => {
       };
 
       const prompt = jest.fn(() => ({ move: true }));
+      const copy = false;
 
       expect(handle({
-        sourceQueueUrl: 'https://sqs.region.amazonaws.com/123456789/srcQueue',
-        targetQueueUrl: 'https://sqs.region.amazonaws.com/123456789/targetQueue',
+        sourceQueueUrl,
+        targetQueueUrl,
+        copy,
         sqs,
         prompt,
       })).rejects.toEqual({ message: 'getCount' });
@@ -66,10 +98,12 @@ describe('handle', () => {
       };
 
       const prompt = jest.fn(() => ({ move: true }));
+      const copy = false;
 
       expect(handle({
-        sourceQueueUrl: 'https://sqs.region.amazonaws.com/123456789/srcQueue',
-        targetQueueUrl: 'https://sqs.region.amazonaws.com/123456789/targetQueue',
+        sourceQueueUrl,
+        targetQueueUrl,
+        copy,
         sqs,
         prompt,
       })).rejects.toEqual(new Error('moveMessage'));
@@ -82,10 +116,12 @@ describe('handle', () => {
       };
 
       const prompt = jest.fn(() => ({ move: true }));
+      const copy = false;
 
       expect(handle({
-        sourceQueueUrl: 'https://sqs.region.amazonaws.com/123456789/srcQueue',
-        targetQueueUrl: 'https://sqs.region.amazonaws.com/123456789/targetQueue',
+        sourceQueueUrl,
+        targetQueueUrl,
+        copy,
         sqs,
         prompt,
       })).rejects.toEqual(new Error('The queue https://sqs.region.amazonaws.com/123456789/srcQueue is empty!'));

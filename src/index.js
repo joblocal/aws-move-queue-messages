@@ -30,9 +30,16 @@ const toQuestion = {
 
 const handleAction = (from, to, options) => {
   const questions = [];
+  let copy = false;
+  let copiedOrMoved = 'moved';
 
   if (!options.region) {
     questions.push(regionQuestion);
+  }
+
+  if (options.copy) {
+    copy = true;
+    copiedOrMoved = 'copied';
   }
 
   if (!from) {
@@ -57,6 +64,7 @@ const handleAction = (from, to, options) => {
       count = await handle({
         sourceQueueUrl,
         targetQueueUrl,
+        copy,
         sqs,
         prompt,
         skipPrompt: options.yes,
@@ -66,7 +74,7 @@ const handleAction = (from, to, options) => {
       process.exit(1);
     }
 
-    console.log(`${count} messages moved from ${sourceQueueUrl} to ${targetQueueUrl}!`);
+    console.log(`${count} messages ${copiedOrMoved} from ${sourceQueueUrl} to ${targetQueueUrl}!`);
   });
 };
 
@@ -74,5 +82,6 @@ program
   .arguments('[from] [to]')
   .option('-r, --region [value]', 'The AWS region')
   .option('-y, --yes', 'Non interactive message moving')
+  .option('-c, --copy', 'Copy messages to new queue, do not delete')
   .action(handleAction)
   .parse(process.argv);
