@@ -1,8 +1,8 @@
 const createClient = (sqs) => {
-  const sendMessage = (QueueUrl, MessageBody, MessageAttributes) => new Promise((resolve, reject) => {
+  const sendMessage = (QueueUrl, MessageBody, MessageAttributes) => new Promise((resolve, rej) => {
     sqs.sendMessage(
       { QueueUrl, MessageBody, MessageAttributes },
-      (error, data) => (error ? reject(error) : resolve(data)),
+      (error, data) => (error ? rej(error) : resolve(data)),
     );
   });
 
@@ -45,15 +45,15 @@ const createClient = (sqs) => {
           throw 'Queue is empty'; // eslint-disable-line
         }
 
-        const { Body, ReceiptHandle } = receivedMessage;
-        var { MessageAttributes } = receivedMessage;
+        const { Body, ReceiptHandle, MessageAttributes } = receivedMessage;
 
         const deleteArrays = (obj) => {
-          if (typeof obj !== "undefined") {
-            Object.keys(obj).forEach(key => {
+          if (typeof obj !== 'undefined') {
+            Object.keys(obj).forEach((key) => {
               if (Array.isArray(obj[key])) {
-                delete obj[key]; // Remove invalid Array values in MessageAttributes
-              } else if (typeof obj[key] === "object") {
+                // Remove invalid Array values in MessageAttributes
+                delete obj[key]; // eslint-disable-line
+              } else if (typeof obj[key] === 'object') {
                 deleteArrays(obj[key]);
               }
             });
