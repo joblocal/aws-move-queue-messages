@@ -33,7 +33,7 @@ const maxQuestion = {
   name: 'maxMessages',
   message: 'Enter the max number of messages:',
   validate: validateMaxMessages,
-}
+};
 
 const handleAction = (from, to, options) => {
   const questions = [];
@@ -43,7 +43,7 @@ const handleAction = (from, to, options) => {
   }
 
   if (!options.maxMessages) {
-    questions.push(maxQuestion)
+    questions.push(maxQuestion);
   }
 
   if (!from) {
@@ -67,9 +67,9 @@ const handleAction = (from, to, options) => {
 
     try {
       count = await handle({
-        maxMessages,
         sourceQueueUrl,
         targetQueueUrl,
+        maxMessages,
         sqs,
         prompt,
         skipPrompt: options.yes,

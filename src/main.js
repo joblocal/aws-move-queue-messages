@@ -1,9 +1,9 @@
 const { Spinner } = require('clui');
 
 const handle = async ({
-  maxMessages,
   sourceQueueUrl,
   targetQueueUrl,
+  maxMessages,
   sqs,
   prompt,
   skipPrompt,
@@ -11,14 +11,14 @@ const handle = async ({
   const count = await sqs.getCount(sourceQueueUrl);
   await sqs.getCount(targetQueueUrl);
 
-  if (parseInt(count) === 0) {
+  if (parseInt(count, 10) === 0) {
     throw new Error(`The queue ${sourceQueueUrl} is empty!`);
   }
 
-  maxMessages = parseInt(maxMessages);
-  moveCount = count
-  if(count > maxMessages) {
-    moveCount = maxMessages
+  const maxCount = parseInt(maxMessages, 10);
+  let moveCount = count;
+  if (count > maxCount) {
+    moveCount = maxCount;
   }
 
   if (!skipPrompt) {
