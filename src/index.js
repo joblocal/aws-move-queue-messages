@@ -3,7 +3,7 @@
 const aws = require('aws-sdk');
 const program = require('commander');
 const { prompt } = require('inquirer');
-const { validateUrl } = require('./helper');
+const { validateMaxMessages, validateUrl } = require('./helper');
 const { handle } = require('./main');
 const { createClient } = require('./sqs');
 
@@ -28,11 +28,22 @@ const toQuestion = {
   validate: validateUrl,
 };
 
+const maxQuestion = {
+  type: 'input',
+  name: 'maxMessages',
+  message: 'Enter the max number of messages:',
+  validate: validateMaxMessages,
+}
+
 const handleAction = (from, to, options) => {
   const questions = [];
 
   if (!options.region) {
     questions.push(regionQuestion);
+  }
+
+  if (!options.maxMessages) {
+    questions.push(maxQuestion)
   }
 
   if (!from) {
@@ -45,6 +56,7 @@ const handleAction = (from, to, options) => {
 
   prompt(questions).then(async ({
     awsRegion = options.region,
+    maxMessages = options.maxMessages,
     sourceQueueUrl = from,
     targetQueueUrl = to,
   }) => {
@@ -55,6 +67,7 @@ const handleAction = (from, to, options) => {
 
     try {
       count = await handle({
+        maxMessages,
         sourceQueueUrl,
         targetQueueUrl,
         sqs,
@@ -73,6 +86,7 @@ const handleAction = (from, to, options) => {
 program
   .arguments('[from] [to]')
   .option('-r, --region [value]', 'The AWS region')
+  .option('-m, --maxMessages [value]', 'Max number of messages')
   .option('-y, --yes', 'Non interactive message moving')
   .action(handleAction)
   .parse(process.argv);

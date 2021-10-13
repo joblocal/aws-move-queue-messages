@@ -1,6 +1,7 @@
 const { Spinner } = require('clui');
 
 const handle = async ({
+  maxMessages,
   sourceQueueUrl,
   targetQueueUrl,
   sqs,
@@ -10,8 +11,14 @@ const handle = async ({
   const count = await sqs.getCount(sourceQueueUrl);
   await sqs.getCount(targetQueueUrl);
 
-  if (count === 0) {
+  if (parseInt(count) === 0) {
     throw new Error(`The queue ${sourceQueueUrl} is empty!`);
+  }
+
+  maxMessages = parseInt(maxMessages);
+  moveCount = count
+  if(count > maxMessages) {
+    moveCount = maxMessages
   }
 
   if (!skipPrompt) {
@@ -19,7 +26,7 @@ const handle = async ({
       {
         type: 'confirm',
         name: 'move',
-        message: `Do you want to move ${count} messages?`,
+        message: `Do you want to move ${moveCount} of ${count} messages?`,
         default: false,
       },
     ]);
@@ -29,12 +36,12 @@ const handle = async ({
     }
   }
 
-  const spinner = new Spinner(`Moving ${count} messages...`);
+  const spinner = new Spinner(`Moving ${moveCount} messages...`);
   spinner.start();
 
   const promises = [];
 
-  for (let i = 0; i < count; i += 1) {
+  for (let i = 0; i < moveCount; i += 1) {
     promises.push(sqs.moveMessage(sourceQueueUrl, targetQueueUrl));
   }
 
@@ -45,7 +52,7 @@ const handle = async ({
     throw new Error(e.message);
   });
 
-  return count;
+  return moveCount;
 };
 
 module.exports = {
