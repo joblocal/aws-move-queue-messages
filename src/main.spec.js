@@ -7,10 +7,32 @@ const { handle } = require('./main');
 describe('handle', () => {
   const sourceQueueUrl = 'https://sqs.region.amazonaws.com/123456789/srcQueue';
   const targetQueueUrl = 'https://sqs.region.amazonaws.com/123456789/targetQueue';
+  const maxMessages = 5;
+  let getCountVal = 3;
 
   test('to move messages', async () => {
     const sqs = {
-      getCount: jest.fn(() => 3),
+      getCount: jest.fn(() => getCountVal),
+      moveMessage: jest.fn(),
+    };
+
+    const prompt = jest.fn(() => ({ move: true }));
+
+    await handle({
+      sourceQueueUrl,
+      targetQueueUrl,
+      maxMessages,
+      sqs,
+      prompt,
+    });
+
+    expect(sqs.getCount).toHaveBeenCalled();
+    expect(sqs.moveMessage).toHaveBeenCalledTimes(getCountVal);
+  });
+
+  test('to move messages with maxCount', async () => {
+    const sqs = {
+      getCount: jest.fn(() => getCountVal),
       moveMessage: jest.fn(),
     };
 
@@ -37,10 +59,12 @@ describe('handle', () => {
 
     const prompt = jest.fn(() => ({ move: true }));
     const copy = true;
+    getCountVal = 10;
 
     await handle({
       sourceQueueUrl,
       targetQueueUrl,
+      maxMessages,
       copy,
       sqs,
       prompt,
@@ -48,11 +72,12 @@ describe('handle', () => {
 
     expect(sqs.getCount).toHaveBeenCalled();
     expect(sqs.moveMessage).toHaveBeenCalledWith(sourceQueueUrl, targetQueueUrl, copy);
+    expect(sqs.moveMessage).toHaveBeenCalledTimes(maxMessages);
   });
 
   test('to move messages without prompt', async () => {
     const sqs = {
-      getCount: jest.fn(() => 3),
+      getCount: jest.fn(() => getCountVal),
       moveMessage: jest.fn(),
     };
 
@@ -62,6 +87,7 @@ describe('handle', () => {
     await handle({
       sourceQueueUrl,
       targetQueueUrl,
+      maxMessages,
       copy,
       sqs,
       prompt,
@@ -85,6 +111,7 @@ describe('handle', () => {
       expect(handle({
         sourceQueueUrl,
         targetQueueUrl,
+        maxMessages,
         copy,
         sqs,
         prompt,
@@ -103,6 +130,7 @@ describe('handle', () => {
       expect(handle({
         sourceQueueUrl,
         targetQueueUrl,
+        maxMessages,
         copy,
         sqs,
         prompt,
@@ -121,6 +149,7 @@ describe('handle', () => {
       expect(handle({
         sourceQueueUrl,
         targetQueueUrl,
+        maxMessages,
         copy,
         sqs,
         prompt,

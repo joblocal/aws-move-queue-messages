@@ -1,14 +1,14 @@
 const createClient = (sqs) => {
-  const sendMessage = (QueueUrl, MessageBody) => new Promise((resolve, reject) => {
+  const sendMessage = (QueueUrl, MessageBody, MessageAttributes) => new Promise((resolve, rej) => {
     sqs.sendMessage(
-      { QueueUrl, MessageBody },
-      (error, data) => (error ? reject(error) : resolve(data)),
+      { QueueUrl, MessageBody, MessageAttributes },
+      (error, data) => (error ? rej(error) : resolve(data)),
     );
   });
 
   const receiveMessage = QueueUrl => new Promise((resolve, reject) => {
     sqs.receiveMessage(
-      { QueueUrl },
+      { QueueUrl, MessageAttributeNames: ['All'] },
       (error, data) => (error ? reject(error) : resolve(data.Messages[0])),
     );
   });
@@ -45,9 +45,23 @@ const createClient = (sqs) => {
           throw 'Queue is empty'; // eslint-disable-line
         }
 
-        const { Body, ReceiptHandle } = receivedMessage;
+        const { Body, ReceiptHandle, MessageAttributes } = receivedMessage;
 
-        await sendMessage(targetQueueUrl, Body);
+        const deleteArrays = (obj) => {
+          if (typeof obj !== 'undefined') {
+            Object.keys(obj).forEach((key) => {
+              if (Array.isArray(obj[key])) {
+                // Remove invalid Array values in MessageAttributes
+                delete obj[key]; // eslint-disable-line
+              } else if (typeof obj[key] === 'object') {
+                deleteArrays(obj[key]);
+              }
+            });
+          }
+        };
+        deleteArrays(MessageAttributes);
+
+        await sendMessage(targetQueueUrl, Body, MessageAttributes);
         if (!copy) {
           await deleteMessage(sourceQueueUrl, ReceiptHandle);
         }

@@ -3,7 +3,7 @@
 const aws = require('aws-sdk');
 const program = require('commander');
 const { prompt } = require('inquirer');
-const { validateUrl } = require('./helper');
+const { validateMaxMessages, validateUrl } = require('./helper');
 const { handle } = require('./main');
 const { createClient } = require('./sqs');
 
@@ -28,6 +28,13 @@ const toQuestion = {
   validate: validateUrl,
 };
 
+const maxQuestion = {
+  type: 'input',
+  name: 'maxMessages',
+  message: 'Enter the max number of messages:',
+  validate: validateMaxMessages,
+};
+
 const handleAction = (from, to, options) => {
   const questions = [];
   let copy = false;
@@ -41,6 +48,10 @@ const handleAction = (from, to, options) => {
     copy = true;
     copiedOrMoved = 'copied';
   }
+  
+  if (!options.maxMessages) {
+    questions.push(maxQuestion);
+  }
 
   if (!from) {
     questions.push(fromQuestion);
@@ -52,6 +63,7 @@ const handleAction = (from, to, options) => {
 
   prompt(questions).then(async ({
     awsRegion = options.region,
+    maxMessages = options.maxMessages,
     sourceQueueUrl = from,
     targetQueueUrl = to,
   }) => {
@@ -64,6 +76,7 @@ const handleAction = (from, to, options) => {
       count = await handle({
         sourceQueueUrl,
         targetQueueUrl,
+        maxMessages,
         copy,
         sqs,
         prompt,
@@ -81,6 +94,7 @@ const handleAction = (from, to, options) => {
 program
   .arguments('[from] [to]')
   .option('-r, --region [value]', 'The AWS region')
+  .option('-m, --maxMessages [value]', 'Max number of messages')
   .option('-y, --yes', 'Non interactive message moving')
   .option('-c, --copy', 'Copy messages to new queue, do not delete')
   .action(handleAction)

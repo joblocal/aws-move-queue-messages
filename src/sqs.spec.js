@@ -10,6 +10,9 @@ const mockCallbackFunction = (error, data) => (
   }
 );
 
+const sourceQueueUrl = 'https://sqs.region.amazonaws.com/123456789/srcQueue';
+const targetQueueUrl = 'https://sqs.region.amazonaws.com/123456789/targetQueue';
+
 describe('getCount', () => {
   test('to resolve promise', async () => {
     const sqs = createClient({
@@ -19,7 +22,7 @@ describe('getCount', () => {
       ),
     });
 
-    const count = await sqs.getCount('https://sqs.region.amazonaws.com/123456789/queue');
+    const count = await sqs.getCount(sourceQueueUrl);
     expect(count).toEqual(3);
   });
 
@@ -28,7 +31,7 @@ describe('getCount', () => {
       getQueueAttributes: mockCallbackFunction({ message: 'error' }, null),
     });
 
-    expect(sqs.getCount('https://sqs.region.amazonaws.com/123456789/queue')).rejects.toEqual({ message: 'error' });
+    expect(sqs.getCount(sourceQueueUrl)).rejects.toEqual({ message: 'error' });
   });
 
   test('to pass queue url', async () => {
@@ -42,10 +45,10 @@ describe('getCount', () => {
 
     const sqs = createClient(mockSqs);
 
-    await sqs.getCount('https://sqs.region.amazonaws.com/123456789/queue');
+    await sqs.getCount(sourceQueueUrl);
     expect(mockSqs.getQueueAttributes).toHaveBeenCalledWith(
       {
-        QueueUrl: 'https://sqs.region.amazonaws.com/123456789/queue',
+        QueueUrl: sourceQueueUrl,
         AttributeNames: [
           'ApproximateNumberOfMessages',
         ],
@@ -63,6 +66,7 @@ describe('moveMessage', () => {
           {
             Body: 'Body',
             ReceiptHandle: 'ReceiptHandle',
+            MessageAttributes: 'MessageAttributes',
           },
         ],
       }),
@@ -70,11 +74,7 @@ describe('moveMessage', () => {
       deleteMessage: mockCallbackFunction(null, {}),
     });
 
-    const handle = await sqs.moveMessage(
-      'https://sqs.region.amazonaws.com/123456789/srcQueue',
-      'https://sqs.region.amazonaws.com/123456789/targetQueue',
-      false,
-    );
+    const handle = await sqs.moveMessage(sourceQueueUrl, targetQueueUrl, false);
     expect(handle).toEqual('ReceiptHandle');
   });
 
@@ -91,11 +91,7 @@ describe('moveMessage', () => {
       sendMessage: mockCallbackFunction(null, {}),
     });
 
-    const handle = await sqs.moveMessage(
-      'https://sqs.region.amazonaws.com/123456789/srcQueue',
-      'https://sqs.region.amazonaws.com/123456789/targetQueue',
-      true,
-    );
+    const handle = await sqs.moveMessage(sourceQueueUrl, targetQueueUrl, true);
     expect(handle).toEqual('ReceiptHandle');
   });
 
@@ -106,11 +102,7 @@ describe('moveMessage', () => {
       deleteMessage: mockCallbackFunction(null, {}),
     });
 
-    expect(sqs.moveMessage(
-      'https://sqs.region.amazonaws.com/123456789/srcQueue',
-      'https://sqs.region.amazonaws.com/123456789/targetQueue',
-      false,
-    )).rejects.toEqual({ message: 'error' });
+    expect(sqs.moveMessage(sourceQueueUrl, targetQueueUrl, false)).rejects.toEqual({ message: 'error' });
   });
 
   test('to call receiveMessage with expected parameters', async () => {
@@ -130,24 +122,25 @@ describe('moveMessage', () => {
 
     const sqs = createClient(mockSqs);
 
-    await sqs.moveMessage(
-      'https://sqs.region.amazonaws.com/123456789/srcQueue',
-      'https://sqs.region.amazonaws.com/123456789/targetQueue',
-      false,
-    );
+    await sqs.moveMessage(sourceQueueUrl, targetQueueUrl, false);
     expect(mockSqs.receiveMessage).toHaveBeenCalledWith(
-      { QueueUrl: 'https://sqs.region.amazonaws.com/123456789/srcQueue' },
+      {
+        QueueUrl: sourceQueueUrl,
+        MessageAttributeNames: ['All'],
+      },
       expect.any(Function),
     );
   });
 
   test('to call sendMessage with expected parameters', async () => {
+    const messageAttributes = 'MessageAttributes';
     const mockSqs = {
       receiveMessage: mockCallbackFunction(null, {
         Messages: [
           {
             Body: 'Body',
             ReceiptHandle: 'ReceiptHandle',
+            MessageAttributes: messageAttributes,
           },
         ],
       }),
@@ -158,15 +151,90 @@ describe('moveMessage', () => {
 
     const sqs = createClient(mockSqs);
 
-    await sqs.moveMessage(
-      'https://sqs.region.amazonaws.com/123456789/srcQueue',
-      'https://sqs.region.amazonaws.com/123456789/targetQueue',
-      false,
-    );
+    await sqs.moveMessage(sourceQueueUrl, targetQueueUrl, false);
     expect(mockSqs.sendMessage).toHaveBeenCalledWith(
       {
         MessageBody: 'Body',
-        QueueUrl: 'https://sqs.region.amazonaws.com/123456789/targetQueue',
+        QueueUrl: targetQueueUrl,
+        MessageAttributes: messageAttributes,
+      },
+      expect.any(Function),
+    );
+  });
+
+  test('to call sendMessage with MessageAttributes', async () => {
+    const messageAttributes = {
+      messageType: {
+        Type: 'String',
+        StringValue: 'messageType1',
+      },
+    };
+    const mockSqs = {
+      receiveMessage: mockCallbackFunction(null, {
+        Messages: [
+          {
+            Body: 'Body',
+            ReceiptHandle: 'ReceiptHandle',
+            MessageAttributes: messageAttributes,
+          },
+        ],
+      }),
+      sendMessage: mockCallbackFunction(null, {}),
+      deleteMessage: mockCallbackFunction(null, {}),
+    };
+    jest.spyOn(mockSqs, 'sendMessage');
+
+    const sqs = createClient(mockSqs);
+
+    await sqs.moveMessage(sourceQueueUrl, targetQueueUrl);
+    expect(mockSqs.sendMessage).toHaveBeenCalledWith(
+      {
+        MessageBody: 'Body',
+        QueueUrl: targetQueueUrl,
+        MessageAttributes: messageAttributes,
+      },
+      expect.any(Function),
+    );
+  });
+
+  test('to call sendMessage with MessageAttributes adjusted', async () => {
+    const expectedMessageAttributes = {
+      messageType: {
+        Type: 'String',
+        StringValue: 'messageType1',
+      },
+    };
+
+    const messageAttributes = {
+      messageType: {
+        Type: 'String',
+        StringValue: 'messageType1',
+      },
+    };
+
+    const mockSqs = {
+      receiveMessage: mockCallbackFunction(null, {
+        Messages: [
+          {
+            Body: 'Body',
+            ReceiptHandle: 'ReceiptHandle',
+            MessageAttributes: messageAttributes,
+          },
+        ],
+      }),
+      sendMessage: mockCallbackFunction(null, {}),
+      deleteMessage: mockCallbackFunction(null, {}),
+    };
+    jest.spyOn(mockSqs, 'sendMessage');
+
+    const sqs = createClient(mockSqs);
+
+    await sqs.moveMessage(sourceQueueUrl, targetQueueUrl);
+    expect(mockSqs.sendMessage).toHaveBeenCalledWith(
+      {
+        MessageBody: 'Body',
+        QueueUrl: targetQueueUrl,
+        MessageAttributes: expectedMessageAttributes,
       },
       expect.any(Function),
     );
@@ -189,15 +257,11 @@ describe('moveMessage', () => {
 
     const sqs = createClient(mockSqs);
 
-    await sqs.moveMessage(
-      'https://sqs.region.amazonaws.com/123456789/srcQueue',
-      'https://sqs.region.amazonaws.com/123456789/targetQueue',
-      false,
-    );
+    await sqs.moveMessage(sourceQueueUrl, targetQueueUrl, false);
     expect(mockSqs.deleteMessage).toHaveBeenCalledWith(
       {
         ReceiptHandle: 'ReceiptHandle',
-        QueueUrl: 'https://sqs.region.amazonaws.com/123456789/srcQueue',
+        QueueUrl: sourceQueueUrl,
       },
       expect.any(Function),
     );
