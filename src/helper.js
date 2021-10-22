@@ -6,6 +6,16 @@ const validateUrl = (input) => {
   return valid;
 };
 
+const validateMaxMessages = (input) => {
+  let valid = true;
+  if (!input.match(/^[1-9][0-9]*$/)) {
+    valid = 'Please enter a valid max number of messages greater than 0!';
+  }
+
+  return valid;
+};
+
 module.exports = {
   validateUrl,
+  validateMaxMessages,
 };

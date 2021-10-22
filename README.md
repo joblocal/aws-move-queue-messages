@@ -36,7 +36,7 @@ $ aws-move-queue-messages
 With all optional CLI arguments:
 
 ```sh
-$ aws-move-queue-messages <from-queue-url> <to-queue-url> -r [AWS-REGION] -y
+$ aws-move-queue-messages <from-queue-url> <to-queue-url> -r [AWS-REGION] -m 100 -y
 ```
 
 Any CLI argument or option you do not specify will fallback to a CLI prompt. The `-y` CLI option will answer the confirmation prompt automatically with "yes".
