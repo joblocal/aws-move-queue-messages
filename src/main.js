@@ -3,6 +3,8 @@ const { Spinner } = require('clui');
 const handle = async ({
   sourceQueueUrl,
   targetQueueUrl,
+  maxMessages,
+  copy,
   sqs,
   prompt,
   skipPrompt,
@@ -10,8 +12,19 @@ const handle = async ({
   const count = await sqs.getCount(sourceQueueUrl);
   await sqs.getCount(targetQueueUrl);
 
-  if (count === 0) {
+  if (parseInt(count, 10) === 0) {
     throw new Error(`The queue ${sourceQueueUrl} is empty!`);
+  }
+
+  let copyOrMove = 'move';
+  if (copy) {
+    copyOrMove = 'copy';
+  }
+
+  const maxCount = parseInt(maxMessages, 10);
+  let moveCount = count;
+  if (count > maxCount) {
+    moveCount = maxCount;
   }
 
   if (!skipPrompt) {
@@ -19,7 +32,7 @@ const handle = async ({
       {
         type: 'confirm',
         name: 'move',
-        message: `Do you want to move ${count} messages?`,
+        message: `Do you want to ${copyOrMove} ${moveCount} of ${count} messages?`,
         default: false,
       },
     ]);
@@ -29,15 +42,13 @@ const handle = async ({
     }
   }
 
-  const spinner = new Spinner(`Moving ${count} messages...`);
+  const spinner = new Spinner(`Moving ${moveCount} messages...`);
   spinner.start();
 
   const promises = [];
 
-  for (let i = 0; i < count; i += 1) {
-    promises.push(sqs.moveMessage(sourceQueueUrl, targetQueueUrl));
-  }
-
+  promises.push(sqs.moveMessage(sourceQueueUrl, targetQueueUrl, copy));
+  
   await Promise.all(promises).then(() => {
     spinner.stop();
   }).catch((e) => {
@@ -45,7 +56,7 @@ const handle = async ({
     throw new Error(e.message);
   });
 
-  return count;
+  return moveCount;
 };
 
 module.exports = {
